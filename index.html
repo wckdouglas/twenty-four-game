@@ -375,7 +375,7 @@
 const SUITS = ["\u2660", "\u2665", "\u2666", "\u2663"];
 const SUIT_COLOR = {"\u2660": "black", "\u2663": "black", "\u2665": "red", "\u2666": "red"};
 const RANK_NAMES = {1:"A", 10:"10", 11:"J", 12:"Q", 13:"K"};
-const OPS = ["+", "-", "*", "/"];
+const OPS = ["+", "-", "\u00d7", "\u00f7"];
 
 const PAREN_FMTS = [
   (v,o) => `((${v[0]} ${o[0]} ${v[1]}) ${o[1]} ${v[2]}) ${o[2]} ${v[3]}`,
@@ -430,8 +430,8 @@ function buildDeck() {
 function apply(op, x, y) {
   if (op === "+") return x + y;
   if (op === "-") return x - y;
-  if (op === "*") return x * y;
-  if (op === "/") return y !== 0 ? x / y : null;
+  if (op === "\u00d7") return x * y;
+  if (op === "\u00f7") return y !== 0 ? x / y : null;
   return null;
 }
 
@@ -466,8 +466,9 @@ function canMake24(values) {
 }
 
 function evalExpr(expr) {
-  if (!/^[\d\s+\-*/().]+$/.test(expr)) return null;
-  try { return Function(`"use strict"; return (${expr})`)(); }
+  const jsExpr = expr.replace(/\u00d7/g, "*").replace(/\u00f7/g, "/");
+  if (!/^[\d\s+\-*/().]+$/.test(jsExpr)) return null;
+  try { return Function(`"use strict"; return (${jsExpr})`)(); }
   catch { return null; }
 }
 
