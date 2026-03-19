@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24 Game</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0B6623;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+    user-select: none;
+  }
+  h1 { color: #FFD700; font-size: 28px; margin-bottom: 4px; }
+
+  /* Info bar */
+  .info-bar {
+    display: flex;
+    gap: 24px;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .info-bar .score { font-weight: bold; }
+
+  .status { font-size: 13px; color: #ccc; margin-bottom: 10px; }
+  .status.has-solution { color: #90EE90; }
+  .status.no-solution { color: #FF9999; }
+
+  /* Card area */
+  .card-area {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 8px;
+    position: relative;
+    min-height: 210px;
+  }
+
+  /* Card */
+  .card-slot {
+    width: 110px;
+    height: 155px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .card {
+    width: 110px;
+    height: 155px;
+    background: #FFFEF0;
+    border-radius: 12px;
+    border: 1px solid #999;
+    position: relative;
+    cursor: grab;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+    transition: box-shadow 0.15s;
+  }
+  .card:active { cursor: grabbing; }
+  .card.dragging {
+    position: fixed;
+    z-index: 1000;
+    box-shadow: 8px 8px 20px rgba(0,0,0,0.5);
+    border: 3px solid #FFD700;
+    pointer-events: none;
+  }
+  .card-slot.ghost .card {
+    opacity: 0.2;
+  }
+
+  .card .rank-tl, .card .rank-br {
+    position: absolute;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1;
+    text-align: center;
+  }
+  .card .suit-tl, .card .suit-br {
+    position: absolute;
+    font-size: 14px;
+    text-align: center;
+  }
+  .card .rank-tl { top: 8px; left: 10px; }
+  .card .suit-tl { top: 26px; left: 10px; }
+  .card .rank-br { bottom: 8px; right: 10px; transform: rotate(180deg); }
+  .card .suit-br { bottom: 26px; right: 10px; transform: rotate(180deg); }
+  .card .center-suit {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+  }
+  .card.red .rank-tl, .card.red .rank-br,
+  .card.red .suit-tl, .card.red .suit-br,
+  .card.red .center-suit { color: #E41E3F; }
+  .card.black .rank-tl, .card.black .rank-br,
+  .card.black .suit-tl, .card.black .suit-br,
+  .card.black .center-suit { color: #1F1F1F; }
+
+  .card-value {
+    text-align: center;
+    color: #ccc;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 4px;
+  }
+
+  /* Operator */
+  .op-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #2a5d2a;
+    border: 2px solid #4a9d4a;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0 6px;
+    transition: background 0.15s;
+  }
+  .op-btn:hover { background: #3a7d3a; }
+
+  /* Brackets */
+  .brackets-area {
+    width: 100%;
+    position: relative;
+    height: 90px;
+    margin-bottom: 4px;
+  }
+  .bracket-u {
+    position: absolute;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+  }
+  .bracket-num {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #1a1a1a;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Grouping nav */
+  .group-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .group-nav button {
+    background: #2a5d2a;
+    color: #1a1a1a;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 4px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .group-nav button:hover { background: #3a7d3a; }
+  .group-nav .label { color: #ccc; font-size: 13px; min-width: 110px; text-align: center; }
+
+  /* Expression preview */
+  .expr-preview {
+    color: #FFD700;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 2px;
+    min-height: 24px;
+  }
+  .result-preview {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 8px;
+    min-height: 20px;
+  }
+  .result-preview.correct { color: #90EE90; }
+  .result-preview.wrong { color: #FF9999; }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .actions button {
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    padding: 8px 22px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #1a1a1a;
+  }
+  .actions .submit-btn { background: #FFD700; }
+  .actions .submit-btn:hover { background: #FFC300; }
+  .actions .skip-btn { background: #888; }
+  .actions .skip-btn:hover { background: #999; }
+  .actions .hint-btn { background: #888; }
+  .actions .hint-btn:hover { background: #999; }
+  .actions button:disabled { opacity: 0.4; cursor: default; }
+
+  .feedback {
+    font-size: 14px;
+    min-height: 22px;
+    text-align: center;
+    max-width: 500px;
+  }
+  .feedback.correct { color: #90EE90; }
+  .feedback.penalty { color: #FF9999; }
+  .feedback.hint { color: #FFD700; }
+
+  .play-again {
+    background: #FFD700;
+    color: #1a1a1a;
+    border: none;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 28px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-top: 10px;
+  }
+  .play-again:hover { background: #FFC300; }
+</style>
+</head>
+<body>
+
+<h1>THE 24 GAME</h1>
+<div class="info-bar">
+  <span class="score" id="score">Score: 0</span>
+  <span id="round">Round 0</span>
+  <span id="cards-left">Cards left: 52</span>
+</div>
+<div class="status" id="status"></div>
+
+<div class="card-area" id="card-area"></div>
+
+<div class="brackets-area" id="brackets-area"></div>
+
+<div class="group-nav">
+  <button id="prev-group">&lt;</button>
+  <span class="label" id="group-label">Grouping 1 / 5</span>
+  <button id="next-group">&gt;</button>
+</div>
+
+<div class="expr-preview" id="expr-preview"></div>
+<div class="result-preview" id="result-preview"></div>
+
+<div class="actions" id="actions">
+  <button class="submit-btn" id="submit-btn">Submit</button>
+  <button class="skip-btn" id="skip-btn">Skip</button>
+  <button class="hint-btn" id="hint-btn">Hint (-1pt)</button>
+</div>
+
+<div class="feedback" id="feedback"></div>
+
+<script>
+// ---- Constants ----
+const SUITS = ["\u2660", "\u2665", "\u2666", "\u2663"];
+const SUIT_COLOR = {"\u2660": "black", "\u2663": "black", "\u2665": "red", "\u2666": "red"};
+const RANK_NAMES = {1:"A", 10:"10", 11:"J", 12:"Q", 13:"K"};
+const OPS = ["+", "-", "*", "/"];
+
+const PAREN_FMTS = [
+  (v,o) => `((${v[0]} ${o[0]} ${v[1]}) ${o[1]} ${v[2]}) ${o[2]} ${v[3]}`,
+  (v,o) => `(${v[0]} ${o[0]} (${v[1]} ${o[1]} ${v[2]})) ${o[2]} ${v[3]}`,
+  (v,o) => `(${v[0]} ${o[0]} ${v[1]}) ${o[1]} (${v[2]} ${o[2]} ${v[3]})`,
+  (v,o) => `${v[0]} ${o[0]} ((${v[1]} ${o[1]} ${v[2]}) ${o[2]} ${v[3]})`,
+  (v,o) => `${v[0]} ${o[0]} (${v[1]} ${o[1]} (${v[2]} ${o[2]} ${v[3]}))`,
+];
+
+const BRACKET_ARCS = [
+  [[0,1,0],[0,2,1],[0,3,2]],
+  [[1,2,0],[0,2,1],[0,3,2]],
+  [[0,1,0],[2,3,0],[0,3,1]],
+  [[1,2,0],[1,3,1],[0,3,2]],
+  [[2,3,0],[1,3,1],[0,3,2]],
+];
+const BRACKET_COLORS = ["#FFD700", "#4FC3F7", "#CE93D8"];
+
+// ---- State ----
+let deck = [];
+let hand = [];       // 4 Card objects in current order
+let ops = [0, 0, 0]; // indices into OPS
+let parenIdx = 0;
+let score = 0;
+let rounds = 0;
+let solution = null;
+
+// ---- Card ----
+function makeCard(rank, suit) {
+  return {
+    rank,
+    suit,
+    get value() { return Math.min(rank, 10); },
+    get rankStr() { return RANK_NAMES[rank] || String(rank); },
+  };
+}
+
+function buildDeck() {
+  const d = [];
+  for (const suit of SUITS)
+    for (let rank = 1; rank <= 13; rank++)
+      d.push(makeCard(rank, suit));
+  // Fisher-Yates shuffle
+  for (let i = d.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [d[i], d[j]] = [d[j], d[i]];
+  }
+  return d;
+}
+
+// ---- Solver ----
+function apply(op, x, y) {
+  if (op === "+") return x + y;
+  if (op === "-") return x - y;
+  if (op === "*") return x * y;
+  if (op === "/") return y !== 0 ? x / y : null;
+  return null;
+}
+
+function canMake24(values) {
+  const opsList = ["+", "-", "*", "/"];
+  function perms(arr) {
+    if (arr.length <= 1) return [arr];
+    const result = [];
+    for (let i = 0; i < arr.length; i++) {
+      const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+      for (const p of perms(rest)) result.push([arr[i], ...p]);
+    }
+    return result;
+  }
+  for (const perm of perms(values)) {
+    const [a,b,c,d] = perm;
+    for (const o1 of opsList) for (const o2 of opsList) for (const o3 of opsList) {
+      let r;
+      // Pattern 1: ((a o1 b) o2 c) o3 d
+      r = apply(o1,a,b); if (r!==null) { r=apply(o2,r,c); if (r!==null) { r=apply(o3,r,d); if (r!==null && Math.abs(r-24)<1e-9) return `((${perm[0]} ${o1} ${perm[1]}) ${o2} ${perm[2]}) ${o3} ${perm[3]}`; }}
+      // Pattern 2: (a o1 (b o2 c)) o3 d
+      r = apply(o2,b,c); if (r!==null) { r=apply(o1,a,r); if (r!==null) { r=apply(o3,r,d); if (r!==null && Math.abs(r-24)<1e-9) return `(${perm[0]} ${o1} (${perm[1]} ${o2} ${perm[2]})) ${o3} ${perm[3]}`; }}
+      // Pattern 3: (a o1 b) o2 (c o3 d)
+      { const r1=apply(o1,a,b), r2=apply(o3,c,d); if (r1!==null&&r2!==null) { const r3=apply(o2,r1,r2); if (r3!==null&&Math.abs(r3-24)<1e-9) return `(${perm[0]} ${o1} ${perm[1]}) ${o2} (${perm[2]} ${o3} ${perm[3]})`; }}
+      // Pattern 4: a o1 ((b o2 c) o3 d)
+      r = apply(o2,b,c); if (r!==null) { r=apply(o3,r,d); if (r!==null) { r=apply(o1,a,r); if (r!==null && Math.abs(r-24)<1e-9) return `${perm[0]} ${o1} ((${perm[1]} ${o2} ${perm[2]}) ${o3} ${perm[3]})`; }}
+      // Pattern 5: a o1 (b o2 (c o3 d))
+      r = apply(o3,c,d); if (r!==null) { r=apply(o2,b,r); if (r!==null) { r=apply(o1,a,r); if (r!==null && Math.abs(r-24)<1e-9) return `${perm[0]} ${o1} (${perm[1]} ${o2} (${perm[2]} ${o3} ${perm[3]}))`; }}
+    }
+  }
+  return null;
+}
+
+function evalExpr(expr) {
+  if (!/^[\d\s+\-*/().]+$/.test(expr)) return null;
+  try { return Function(`"use strict"; return (${expr})`)(); }
+  catch { return null; }
+}
+
+// ---- DOM helpers ----
+const $ = id => document.getElementById(id);
+
+function createCardEl(card) {
+  const el = document.createElement("div");
+  el.className = `card ${SUIT_COLOR[card.suit]}`;
+  el.innerHTML = `
+    <span class="rank-tl">${card.rankStr}</span>
+    <span class="suit-tl">${card.suit}</span>
+    <span class="center-suit">${card.suit}</span>
+    <span class="rank-br">${card.rankStr}</span>
+    <span class="suit-br">${card.suit}</span>
+  `;
+  return el;
+}
+
+// ---- Rendering ----
+function renderCardArea() {
+  const area = $("card-area");
+  area.innerHTML = "";
+  hand.forEach((card, i) => {
+    // Card slot
+    const slot = document.createElement("div");
+    slot.className = "card-slot";
+    slot.dataset.index = i;
+    const cardEl = createCardEl(card);
+    cardEl.dataset.index = i;
+    slot.appendChild(cardEl);
+    // Value label
+    const val = document.createElement("div");
+    val.className = "card-value";
+    val.textContent = `= ${card.value}`;
+    slot.appendChild(val);
+    area.appendChild(slot);
+
+    // Operator between cards (not after last)
+    if (i < 3) {
+      const opBtn = document.createElement("div");
+      opBtn.className = "op-btn";
+      opBtn.textContent = OPS[ops[i]];
+      opBtn.dataset.opIndex = i;
+      opBtn.addEventListener("click", () => {
+        ops[i] = (ops[i] + 1) % OPS.length;
+        renderCardArea();
+        renderBrackets();
+        updateExpression();
+      });
+      area.appendChild(opBtn);
+    }
+  });
+  setupDragAndDrop();
+}
+
+function renderBrackets() {
+  const area = $("brackets-area");
+  area.innerHTML = "";
+  const arcs = BRACKET_ARCS[parenIdx];
+  // We need to know card slot center positions relative to brackets-area
+  // Card area and brackets area have same width, cards are laid out in card-area
+  const cardArea = $("card-area");
+  const slots = cardArea.querySelectorAll(".card-slot");
+  if (slots.length < 4) return;
+
+  const areaRect = area.getBoundingClientRect();
+  const centers = Array.from(slots).map(s => {
+    const r = s.getBoundingClientRect();
+    return r.left + r.width / 2 - areaRect.left;
+  });
+
+  const SPACING = 28;
+  arcs.forEach(([left, right, level], step) => {
+    const color = BRACKET_COLORS[Math.min(step, BRACKET_COLORS.length - 1)];
+    const x1 = centers[left];
+    const x2 = centers[right];
+    const yTop = level * SPACING + 4;
+    const yBot = yTop + SPACING - 6;
+    const width = x2 - x1;
+
+    // U-bracket
+    const bracket = document.createElement("div");
+    bracket.className = "bracket-u";
+    bracket.style.cssText = `
+      left: ${x1}px; top: ${yTop}px;
+      width: ${width}px; height: ${yBot - yTop}px;
+      border-color: ${color};
+    `;
+    area.appendChild(bracket);
+
+    // Step number
+    const num = document.createElement("div");
+    num.className = "bracket-num";
+    num.style.cssText = `
+      left: ${(x1 + x2) / 2}px; top: ${yBot}px;
+      background: ${color};
+    `;
+    num.textContent = step + 1;
+    area.appendChild(num);
+  });
+}
+
+function updateExpression() {
+  const values = hand.map(c => String(c.value));
+  const opStrs = ops.map(i => OPS[i]);
+  const expr = PAREN_FMTS[parenIdx](values, opStrs);
+  $("expr-preview").textContent = expr;
+
+  const result = evalExpr(expr);
+  const rp = $("result-preview");
+  if (result !== null) {
+    if (Math.abs(result - 24) < 1e-9) {
+      rp.textContent = "= 24 !";
+      rp.className = "result-preview correct";
+    } else {
+      rp.textContent = `= ${Number(result.toPrecision(6))}`;
+      rp.className = "result-preview";
+    }
+  } else {
+    rp.textContent = "= ??";
+    rp.className = "result-preview wrong";
+  }
+  $("group-label").textContent = `Grouping ${parenIdx + 1} / 5`;
+}
+
+function updateInfo() {
+  $("score").textContent = `Score: ${score}`;
+  $("round").textContent = `Round ${rounds}`;
+  $("cards-left").textContent = `Cards left: ${deck.length}`;
+}
+
+// ---- Drag and drop ----
+function setupDragAndDrop() {
+  const cardArea = $("card-area");
+  const cards = cardArea.querySelectorAll(".card:not(.dragging)");
+
+  cards.forEach(cardEl => {
+    cardEl.addEventListener("pointerdown", onPointerDown);
+  });
+}
+
+let dragState = null;
+
+function onPointerDown(e) {
+  const cardEl = e.currentTarget;
+  const idx = parseInt(cardEl.dataset.index);
+  const rect = cardEl.getBoundingClientRect();
+
+  dragState = {
+    idx,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top,
+    el: cardEl,
+  };
+
+  // Create dragging clone
+  const clone = cardEl.cloneNode(true);
+  clone.classList.add("dragging");
+  clone.style.width = rect.width + "px";
+  clone.style.height = rect.height + "px";
+  clone.style.left = (e.clientX - dragState.offsetX) + "px";
+  clone.style.top = (e.clientY - dragState.offsetY) + "px";
+  document.body.appendChild(clone);
+  dragState.clone = clone;
+
+  // Ghost the original
+  cardEl.closest(".card-slot").classList.add("ghost");
+
+  document.addEventListener("pointermove", onPointerMove);
+  document.addEventListener("pointerup", onPointerUp);
+  e.preventDefault();
+}
+
+function onPointerMove(e) {
+  if (!dragState) return;
+  dragState.clone.style.left = (e.clientX - dragState.offsetX) + "px";
+  dragState.clone.style.top = (e.clientY - dragState.offsetY) + "px";
+}
+
+function onPointerUp(e) {
+  if (!dragState) return;
+  document.removeEventListener("pointermove", onPointerMove);
+  document.removeEventListener("pointerup", onPointerUp);
+
+  // Find nearest slot
+  const dropX = e.clientX;
+  const slots = $("card-area").querySelectorAll(".card-slot");
+  let bestSlot = dragState.idx;
+  let bestDist = Infinity;
+  slots.forEach((slot, i) => {
+    const r = slot.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const dist = Math.abs(dropX - cx);
+    if (dist < bestDist) { bestDist = dist; bestSlot = i; }
+  });
+
+  // Swap
+  if (bestSlot !== dragState.idx) {
+    [hand[dragState.idx], hand[bestSlot]] = [hand[bestSlot], hand[dragState.idx]];
+  }
+
+  dragState.clone.remove();
+  dragState = null;
+  renderCardArea();
+  renderBrackets();
+  updateExpression();
+}
+
+// ---- Game logic ----
+function newGame() {
+  deck = buildDeck();
+  score = 0;
+  rounds = 0;
+  // Remove play again button if present
+  const pa = document.querySelector(".play-again");
+  if (pa) pa.remove();
+  setButtonsEnabled(true);
+  nextRound();
+}
+
+function nextRound() {
+  if (deck.length < 4) { gameOver(); return; }
+  hand = [deck.pop(), deck.pop(), deck.pop(), deck.pop()];
+  solution = canMake24(hand.map(c => c.value));
+  rounds++;
+  ops = [0, 0, 0];
+  parenIdx = 0;
+
+  updateInfo();
+  renderCardArea();
+  // Brackets need to render after card layout is ready
+  requestAnimationFrame(() => { renderBrackets(); updateExpression(); });
+
+  const st = $("status");
+  if (solution) {
+    st.textContent = "Drag cards to reorder  |  Click operators to cycle  |  A solution exists!";
+    st.className = "status has-solution";
+  } else {
+    st.textContent = "Drag cards to reorder  |  Click operators to cycle  |  No solution possible";
+    st.className = "status no-solution";
+  }
+  $("feedback").textContent = "";
+  $("feedback").className = "feedback";
+}
+
+function getExpression() {
+  const values = hand.map(c => String(c.value));
+  const opStrs = ops.map(i => OPS[i]);
+  return PAREN_FMTS[parenIdx](values, opStrs);
+}
+
+function setButtonsEnabled(enabled) {
+  $("submit-btn").disabled = !enabled;
+  $("skip-btn").disabled = !enabled;
+  $("hint-btn").disabled = !enabled;
+}
+
+$("submit-btn").addEventListener("click", () => {
+  const expr = getExpression();
+  const result = evalExpr(expr);
+  const fb = $("feedback");
+  if (result !== null && Math.abs(result - 24) < 1e-9) {
+    score++;
+    fb.textContent = `Correct! ${expr} = 24  (+1 point)`;
+    fb.className = "feedback correct";
+    updateInfo();
+    setButtonsEnabled(false);
+    setTimeout(() => { setButtonsEnabled(true); nextRound(); }, 1200);
+  } else {
+    const val = result !== null ? Number(result.toPrecision(4)) : "??";
+    fb.textContent = `${expr} = ${val}, not 24. Keep trying!`;
+    fb.className = "feedback penalty";
+  }
+});
+
+$("skip-btn").addEventListener("click", () => {
+  const fb = $("feedback");
+  if (solution) {
+    score--;
+    fb.textContent = `Solution was: ${solution}  (-1 point)`;
+    fb.className = "feedback penalty";
+  } else {
+    fb.textContent = "Correct, no solution! No penalty.";
+    fb.className = "feedback correct";
+  }
+  updateInfo();
+  setButtonsEnabled(false);
+  setTimeout(() => { setButtonsEnabled(true); nextRound(); }, 1500);
+});
+
+$("hint-btn").addEventListener("click", () => {
+  const fb = $("feedback");
+  if (solution) {
+    score--;
+    fb.textContent = `Hint: ${solution}  (-1 point)`;
+    fb.className = "feedback hint";
+    updateInfo();
+  } else {
+    fb.textContent = "No solution exists for these cards.";
+    fb.className = "feedback hint";
+  }
+});
+
+$("prev-group").addEventListener("click", () => {
+  parenIdx = (parenIdx - 1 + PAREN_FMTS.length) % PAREN_FMTS.length;
+  renderBrackets();
+  updateExpression();
+});
+
+$("next-group").addEventListener("click", () => {
+  parenIdx = (parenIdx + 1) % PAREN_FMTS.length;
+  renderBrackets();
+  updateExpression();
+});
+
+function gameOver() {
+  $("card-area").innerHTML = `<div style="font-size:36px;font-weight:bold;color:#FFD700;text-align:center;width:100%;padding:40px 0;">GAME OVER</div>`;
+  $("brackets-area").innerHTML = "";
+  $("status").textContent = "";
+  $("expr-preview").textContent = "";
+  $("result-preview").textContent = "";
+  $("feedback").textContent = `Final Score: ${score} / ${rounds} rounds`;
+  $("feedback").className = "feedback";
+  setButtonsEnabled(false);
+
+  const btn = document.createElement("button");
+  btn.className = "play-again";
+  btn.textContent = "Play Again";
+  btn.addEventListener("click", newGame);
+  $("actions").after(btn);
+}
+
+// Re-render brackets on resize
+window.addEventListener("resize", () => { renderBrackets(); });
+
+// Start
+newGame();
+</script>
+</body>
+</html>
