@@ -239,6 +239,28 @@
     margin-top: 10px;
   }
   .play-again:hover { background: #FFC300; }
+
+  /* How to play */
+  .how-to-play {
+    margin-top: 16px;
+    max-width: 520px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: #ddd;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .how-to-play summary {
+    cursor: pointer;
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .how-to-play .rules { margin-top: 8px; }
+  .how-to-play ul { margin: 6px 0 6px 20px; }
+  .how-to-play li { margin-bottom: 3px; }
+  .how-to-play p { margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -271,6 +293,29 @@
 </div>
 
 <div class="feedback" id="feedback"></div>
+
+<details class="how-to-play" id="how-to-play">
+  <summary>How to Play</summary>
+  <div class="rules">
+    <p>You are dealt <strong>4 cards</strong> from a standard deck. Your goal is to combine
+    all four card values using <strong>+</strong>, <strong>-</strong>, <strong>*</strong>,
+    <strong>/</strong> to make an expression that equals <strong>24</strong>.</p>
+    <ul>
+      <li><strong>Drag cards</strong> to rearrange their order</li>
+      <li><strong>Click the operator circles</strong> between cards to cycle through +, -, *, /</li>
+      <li>Use the <strong>&lt; &gt; arrows</strong> to change how the expression is grouped (parentheses)</li>
+      <li>The colored brackets below the cards show <strong>evaluation order</strong> &mdash; 1st, 2nd, 3rd</li>
+    </ul>
+    <p><strong>Scoring:</strong></p>
+    <ul>
+      <li><strong>Submit</strong> a correct answer: <span style="color:#90EE90">+1 point</span></li>
+      <li><strong>Skip</strong> when a solution exists: <span style="color:#FF9999">-1 point</span></li>
+      <li><strong>Skip</strong> when no solution exists: no penalty</li>
+      <li><strong>Hint</strong> reveals a solution: <span style="color:#FF9999">-1 point</span></li>
+    </ul>
+    <p>Card values: A=1, 2-10 face value, J/Q/K=10. The game ends when the deck runs out.</p>
+  </div>
+</details>
 
 <script>
 // ---- Constants ----
