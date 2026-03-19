@@ -70,6 +70,7 @@ def build_deck() -> list[Card]:
 
 # --- Solver ---
 
+
 def _apply(op: str, x: float, y: float) -> float | None:
     if op == "+":
         return x + y
@@ -126,7 +127,7 @@ def can_make_24(values: list[int]) -> str | None:
 
 
 def evaluate_expression(expr: str) -> float | None:
-    if not re.match(r'^[\d\s\+\-\*/\(\)\.]+$', expr):
+    if not re.match(r"^[\d\s\+\-\*/\(\)\.]+$", expr):
         return None
     try:
         result = eval(expr, {"__builtins__": {}}, {})  # noqa: S307
@@ -137,41 +138,113 @@ def evaluate_expression(expr: str) -> float | None:
 
 # --- Canvas drawing helpers ---
 
-def draw_rounded_rect(canvas: tk.Canvas, x1: int, y1: int, x2: int, y2: int,
-                       r: int = 10, **kwargs) -> int:
+
+def draw_rounded_rect(
+    canvas: tk.Canvas, x1: int, y1: int, x2: int, y2: int, r: int = 10, **kwargs
+) -> int:
     points = [
-        x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r,
-        x2, y2 - r, x2, y2, x2 - r, y2, x1 + r, y2,
-        x1, y2, x1, y2 - r, x1, y1 + r, x1, y1,
+        x1 + r,
+        y1,
+        x2 - r,
+        y1,
+        x2,
+        y1,
+        x2,
+        y1 + r,
+        x2,
+        y2 - r,
+        x2,
+        y2,
+        x2 - r,
+        y2,
+        x1 + r,
+        y2,
+        x1,
+        y2,
+        x1,
+        y2 - r,
+        x1,
+        y1 + r,
+        x1,
+        y1,
     ]
     return canvas.create_polygon(points, smooth=True, **kwargs)
 
 
-def draw_card_at(canvas: tk.Canvas, x: int, y: int, card: Card,
-                 tag: str = "", highlight: bool = False) -> None:
+def draw_card_at(
+    canvas: tk.Canvas, x: int, y: int, card: Card, tag: str = "", highlight: bool = False
+) -> None:
     color = SUIT_COLORS[card.suit]
     rank = card.rank_str
     suit = card.suit
 
-    draw_rounded_rect(canvas, x + 3, y + 3, x + CARD_W + 3, y + CARD_H + 3,
-                      r=CARD_RADIUS, fill="#1a3d1a", outline="", tags=tag)
+    draw_rounded_rect(
+        canvas,
+        x + 3,
+        y + 3,
+        x + CARD_W + 3,
+        y + CARD_H + 3,
+        r=CARD_RADIUS,
+        fill="#1a3d1a",
+        outline="",
+        tags=tag,
+    )
     outline_color = "#FFD700" if highlight else "#999999"
     outline_w = 3 if highlight else 1
-    draw_rounded_rect(canvas, x, y, x + CARD_W, y + CARD_H,
-                      r=CARD_RADIUS, fill=CARD_BG, outline=outline_color,
-                      width=outline_w, tags=tag)
-    canvas.create_text(x + 12, y + 14, text=rank, fill=color,
-                       font=("Arial", 15, "bold"), anchor="n", tags=tag)
-    canvas.create_text(x + 12, y + 33, text=suit, fill=color,
-                       font=("Arial", 13), anchor="n", tags=tag)
-    canvas.create_text(x + CARD_W // 2, y + CARD_H // 2, text=suit,
-                       fill=color, font=("Arial", 44), anchor="center", tags=tag)
-    canvas.create_text(x + CARD_W - 12, y + CARD_H - 14, text=rank,
-                       fill=color, font=("Arial", 15, "bold"), anchor="s", tags=tag)
-    canvas.create_text(x + CARD_W - 12, y + CARD_H - 33, text=suit,
-                       fill=color, font=("Arial", 13), anchor="s", tags=tag)
-    canvas.create_text(x + CARD_W // 2, y + CARD_H + 12, text=f"= {card.value}",
-                       fill="#CCCCCC", font=("Arial", 12, "bold"), anchor="n", tags=tag)
+    draw_rounded_rect(
+        canvas,
+        x,
+        y,
+        x + CARD_W,
+        y + CARD_H,
+        r=CARD_RADIUS,
+        fill=CARD_BG,
+        outline=outline_color,
+        width=outline_w,
+        tags=tag,
+    )
+    canvas.create_text(
+        x + 12, y + 14, text=rank, fill=color, font=("Arial", 15, "bold"), anchor="n", tags=tag
+    )
+    canvas.create_text(
+        x + 12, y + 33, text=suit, fill=color, font=("Arial", 13), anchor="n", tags=tag
+    )
+    canvas.create_text(
+        x + CARD_W // 2,
+        y + CARD_H // 2,
+        text=suit,
+        fill=color,
+        font=("Arial", 44),
+        anchor="center",
+        tags=tag,
+    )
+    canvas.create_text(
+        x + CARD_W - 12,
+        y + CARD_H - 14,
+        text=rank,
+        fill=color,
+        font=("Arial", 15, "bold"),
+        anchor="s",
+        tags=tag,
+    )
+    canvas.create_text(
+        x + CARD_W - 12,
+        y + CARD_H - 33,
+        text=suit,
+        fill=color,
+        font=("Arial", 13),
+        anchor="s",
+        tags=tag,
+    )
+    canvas.create_text(
+        x + CARD_W // 2,
+        y + CARD_H + 12,
+        text=f"= {card.value}",
+        fill="#CCCCCC",
+        font=("Arial", 12, "bold"),
+        anchor="n",
+        tags=tag,
+    )
 
 
 # --- Layout ---
@@ -180,8 +253,8 @@ OP_W = 50
 SLOT_GAP = 10
 MARGIN_X = 30
 CARD_TOP = 15
-BRACKET_TOP = CARD_TOP + CARD_H + 32   # where brackets start (below value labels)
-BRACKET_SPACING = 28                     # vertical space per bracket level
+BRACKET_TOP = CARD_TOP + CARD_H + 32  # where brackets start (below value labels)
+BRACKET_SPACING = 28  # vertical space per bracket level
 CANVAS_W = MARGIN_X * 2 + CARD_W * 4 + OP_W * 3 + SLOT_GAP * 6
 CANVAS_H = BRACKET_TOP + BRACKET_SPACING * 3 + 10
 
@@ -199,6 +272,7 @@ def op_center_x(i: int) -> int:
 
 
 # --- Game ---
+
 
 class Game:
     def __init__(self, root: tk.Tk):
@@ -225,30 +299,36 @@ class Game:
 
     def _build_ui(self) -> None:
         # Header
-        tk.Label(self.root, text="THE 24 GAME", bg=TABLE_BG, fg="#FFD700",
-                 font=("Arial", 22, "bold")).pack(pady=(12, 2))
+        tk.Label(
+            self.root, text="THE 24 GAME", bg=TABLE_BG, fg="#FFD700", font=("Arial", 22, "bold")
+        ).pack(pady=(12, 2))
 
         # Info bar
         info = tk.Frame(self.root, bg=TABLE_BG)
         info.pack(fill="x", padx=20, pady=2)
-        self.score_label = tk.Label(info, text="Score: 0", bg=TABLE_BG, fg="white",
-                                    font=("Arial", 14, "bold"))
+        self.score_label = tk.Label(
+            info, text="Score: 0", bg=TABLE_BG, fg="white", font=("Arial", 14, "bold")
+        )
         self.score_label.pack(side="left")
-        self.cards_left_label = tk.Label(info, text="Cards left: 52", bg=TABLE_BG,
-                                         fg="white", font=("Arial", 14))
+        self.cards_left_label = tk.Label(
+            info, text="Cards left: 52", bg=TABLE_BG, fg="white", font=("Arial", 14)
+        )
         self.cards_left_label.pack(side="right")
-        self.round_label = tk.Label(info, text="Round 0", bg=TABLE_BG, fg="white",
-                                    font=("Arial", 14))
+        self.round_label = tk.Label(
+            info, text="Round 0", bg=TABLE_BG, fg="white", font=("Arial", 14)
+        )
         self.round_label.pack()
 
         # Instruction
-        self.status_label = tk.Label(self.root, text="", bg=TABLE_BG, fg="#CCCCCC",
-                                     font=("Arial", 11))
+        self.status_label = tk.Label(
+            self.root, text="", bg=TABLE_BG, fg="#CCCCCC", font=("Arial", 11)
+        )
         self.status_label.pack(pady=(2, 0))
 
         # Main canvas
-        self.canvas = tk.Canvas(self.root, width=CANVAS_W, height=CANVAS_H,
-                                bg=TABLE_BG, highlightthickness=0)
+        self.canvas = tk.Canvas(
+            self.root, width=CANVAS_W, height=CANVAS_H, bg=TABLE_BG, highlightthickness=0
+        )
         self.canvas.pack(padx=10, pady=(8, 0))
         self.canvas.bind("<Button-1>", self._on_press)
         self.canvas.bind("<B1-Motion>", self._on_drag)
@@ -258,49 +338,90 @@ class Game:
         group_frame = tk.Frame(self.root, bg=TABLE_BG)
         group_frame.pack(pady=(6, 2))
 
-        arrow_style = {"font": ("Arial", 16, "bold"), "bg": "#2a5d2a", "fg": "white",
-                       "activebackground": "#3a7d3a", "activeforeground": "white",
-                       "relief": "flat", "cursor": "hand2", "padx": 10, "pady": 0}
-        tk.Button(group_frame, text="<", command=self._prev_paren,
-                  **arrow_style).pack(side="left", padx=4)
-        self.group_label = tk.Label(group_frame, text="Grouping 1 / 5",
-                                    bg=TABLE_BG, fg="#CCCCCC",
-                                    font=("Arial", 12), width=14)
+        arrow_style = {
+            "font": ("Arial", 16, "bold"),
+            "bg": "#2a5d2a",
+            "fg": "#1a1a1a",
+            "activebackground": "#3a7d3a",
+            "activeforeground": "#1a1a1a",
+            "relief": "flat",
+            "cursor": "hand2",
+            "padx": 10,
+            "pady": 0,
+        }
+        tk.Button(group_frame, text="<", command=self._prev_paren, **arrow_style).pack(
+            side="left", padx=4
+        )
+        self.group_label = tk.Label(
+            group_frame,
+            text="Grouping 1 / 5",
+            bg=TABLE_BG,
+            fg="#CCCCCC",
+            font=("Arial", 12),
+            width=14,
+        )
         self.group_label.pack(side="left", padx=4)
-        tk.Button(group_frame, text=">", command=self._next_paren,
-                  **arrow_style).pack(side="left", padx=4)
+        tk.Button(group_frame, text=">", command=self._next_paren, **arrow_style).pack(
+            side="left", padx=4
+        )
 
         # Expression preview
-        self.expr_label = tk.Label(self.root, text="", bg=TABLE_BG, fg="#FFD700",
-                                   font=("Courier", 16, "bold"))
+        self.expr_label = tk.Label(
+            self.root, text="", bg=TABLE_BG, fg="#FFD700", font=("Courier", 16, "bold")
+        )
         self.expr_label.pack(pady=(6, 2))
 
         # Result preview
-        self.result_label = tk.Label(self.root, text="", bg=TABLE_BG, fg="#CCCCCC",
-                                     font=("Arial", 13))
+        self.result_label = tk.Label(
+            self.root, text="", bg=TABLE_BG, fg="#CCCCCC", font=("Arial", 13)
+        )
         self.result_label.pack(pady=(0, 4))
 
         # Action buttons
         btn_frame = tk.Frame(self.root, bg=TABLE_BG)
         btn_frame.pack(pady=(4, 4))
-        btn_style = {"font": ("Arial", 13, "bold"), "relief": "flat",
-                     "cursor": "hand2", "padx": 18, "pady": 6}
-        self.submit_btn = tk.Button(btn_frame, text="Submit", bg="#FFD700",
-                                    fg="#1a1a1a", activebackground="#FFC300",
-                                    command=self._submit, **btn_style)
+        btn_style = {
+            "font": ("Arial", 13, "bold"),
+            "relief": "flat",
+            "cursor": "hand2",
+            "padx": 18,
+            "pady": 6,
+        }
+        self.submit_btn = tk.Button(
+            btn_frame,
+            text="Submit",
+            bg="#FFD700",
+            fg="#1a1a1a",
+            activebackground="#FFC300",
+            command=self._submit,
+            **btn_style,
+        )
         self.submit_btn.pack(side="left", padx=5)
-        self.skip_btn = tk.Button(btn_frame, text="Skip", bg="#555555", fg="white",
-                                  activebackground="#777777", command=self._skip,
-                                  **btn_style)
+        self.skip_btn = tk.Button(
+            btn_frame,
+            text="Skip",
+            bg="#555555",
+            fg="#1a1a1a",
+            activebackground="#777777",
+            command=self._skip,
+            **btn_style,
+        )
         self.skip_btn.pack(side="left", padx=5)
-        self.hint_btn = tk.Button(btn_frame, text="Hint (-1pt)", bg="#555555",
-                                  fg="white", activebackground="#777777",
-                                  command=self._hint, **btn_style)
+        self.hint_btn = tk.Button(
+            btn_frame,
+            text="Hint (-1pt)",
+            bg="#555555",
+            fg="#1a1a1a",
+            activebackground="#777777",
+            command=self._hint,
+            **btn_style,
+        )
         self.hint_btn.pack(side="left", padx=5)
 
         # Feedback
-        self.feedback_label = tk.Label(self.root, text="", bg=TABLE_BG, fg="white",
-                                       font=("Arial", 13), wraplength=600)
+        self.feedback_label = tk.Label(
+            self.root, text="", bg=TABLE_BG, fg="white", font=("Arial", 13), wraplength=600
+        )
         self.feedback_label.pack(pady=(0, 12))
 
     # ---- Drawing ----
@@ -312,9 +433,18 @@ class Game:
         for i, card in enumerate(self.hand):
             if i == self._drag_idx:
                 x, y = slot_x(i), CARD_TOP
-                draw_rounded_rect(self.canvas, x, y, x + CARD_W, y + CARD_H,
-                                  r=CARD_RADIUS, fill="#0e7a2e", outline="#2a8d2a",
-                                  width=2, dash=(4, 4))
+                draw_rounded_rect(
+                    self.canvas,
+                    x,
+                    y,
+                    x + CARD_W,
+                    y + CARD_H,
+                    r=CARD_RADIUS,
+                    fill="#0e7a2e",
+                    outline="#2a8d2a",
+                    width=2,
+                    dash=(4, 4),
+                )
             else:
                 draw_card_at(self.canvas, slot_x(i), CARD_TOP, card, tag=f"card{i}")
 
@@ -323,12 +453,24 @@ class Game:
             cx = op_center_x(i)
             cy = CARD_TOP + CARD_H // 2
             r = 22
-            self.canvas.create_oval(cx - r, cy - r, cx + r, cy + r,
-                                    fill="#2a5d2a", outline="#4a9d4a", width=2,
-                                    tags=f"op{i}")
-            self.canvas.create_text(cx, cy, text=OPS[self.ops[i]],
-                                    fill="white", font=("Arial", 20, "bold"),
-                                    tags=f"op{i}")
+            self.canvas.create_oval(
+                cx - r,
+                cy - r,
+                cx + r,
+                cy + r,
+                fill="#2a5d2a",
+                outline="#4a9d4a",
+                width=2,
+                tags=f"op{i}",
+            )
+            self.canvas.create_text(
+                cx,
+                cy,
+                text=OPS[self.ops[i]],
+                fill="white",
+                font=("Arial", 20, "bold"),
+                tags=f"op{i}",
+            )
 
         # Draw bracket arcs
         self._draw_brackets()
@@ -347,22 +489,26 @@ class Game:
             # Draw U-shaped bracket: left vertical, bottom horizontal, right vertical
             w = 2
             # Left leg
-            self.canvas.create_line(x1, y_top, x1, y_bot, fill=color, width=w,
-                                    tags="brackets")
+            self.canvas.create_line(x1, y_top, x1, y_bot, fill=color, width=w, tags="brackets")
             # Bottom bar
-            self.canvas.create_line(x1, y_bot, x2, y_bot, fill=color, width=w,
-                                    tags="brackets")
+            self.canvas.create_line(x1, y_bot, x2, y_bot, fill=color, width=w, tags="brackets")
             # Right leg
-            self.canvas.create_line(x2, y_top, x2, y_bot, fill=color, width=w,
-                                    tags="brackets")
+            self.canvas.create_line(x2, y_top, x2, y_bot, fill=color, width=w, tags="brackets")
 
             # Step number in the middle of the bottom bar
             mid_x = (x1 + x2) // 2
-            self.canvas.create_oval(mid_x - 9, y_bot - 9, mid_x + 9, y_bot + 9,
-                                    fill=color, outline="", tags="brackets")
-            self.canvas.create_text(mid_x, y_bot, text=str(step + 1),
-                                    fill="#1a1a1a", font=("Arial", 10, "bold"),
-                                    anchor="center", tags="brackets")
+            self.canvas.create_oval(
+                mid_x - 9, y_bot - 9, mid_x + 9, y_bot + 9, fill=color, outline="", tags="brackets"
+            )
+            self.canvas.create_text(
+                mid_x,
+                y_bot,
+                text=str(step + 1),
+                fill="#1a1a1a",
+                font=("Arial", 10, "bold"),
+                anchor="center",
+                tags="brackets",
+            )
 
     def _update_expression(self) -> None:
         values = [str(c.value) for c in self.hand]
@@ -411,7 +557,7 @@ class Game:
         cy = CARD_TOP + CARD_H // 2
         for i in range(3):
             cx = op_center_x(i)
-            if (mx - cx) ** 2 + (my - cy) ** 2 <= 22 ** 2:
+            if (mx - cx) ** 2 + (my - cy) ** 2 <= 22**2:
                 return i
         return None
 
@@ -428,17 +574,27 @@ class Game:
         self._drag_offset_x = event.x - slot_x(card_idx)
         self._drag_offset_y = event.y - CARD_TOP
         self._redraw()
-        draw_card_at(self.canvas, event.x - self._drag_offset_x,
-                     event.y - self._drag_offset_y,
-                     self.hand[card_idx], tag="dragging", highlight=True)
+        draw_card_at(
+            self.canvas,
+            event.x - self._drag_offset_x,
+            event.y - self._drag_offset_y,
+            self.hand[card_idx],
+            tag="dragging",
+            highlight=True,
+        )
 
     def _on_drag(self, event: tk.Event) -> None:
         if self._drag_idx is None:
             return
         self.canvas.delete("dragging")
-        draw_card_at(self.canvas, event.x - self._drag_offset_x,
-                     event.y - self._drag_offset_y,
-                     self.hand[self._drag_idx], tag="dragging", highlight=True)
+        draw_card_at(
+            self.canvas,
+            event.x - self._drag_offset_x,
+            event.y - self._drag_offset_y,
+            self.hand[self._drag_idx],
+            tag="dragging",
+            highlight=True,
+        )
 
     def _on_release(self, event: tk.Event) -> None:
         if self._drag_idx is None:
@@ -492,11 +648,13 @@ class Game:
         if self.solution:
             self.status_label.config(
                 text="Drag cards to reorder  |  Click operators to cycle  |  A solution exists!",
-                fg="#90EE90")
+                fg="#90EE90",
+            )
         else:
             self.status_label.config(
                 text="Drag cards to reorder  |  Click operators to cycle  |  No solution possible",
-                fg="#FF9999")
+                fg="#FF9999",
+            )
         self.feedback_label.config(text="")
 
     def _get_expression(self) -> str:
@@ -509,24 +667,22 @@ class Game:
         result = evaluate_expression(expr)
         if result is not None and abs(result - 24) < 1e-9:
             self.score += 1
-            self.feedback_label.config(
-                text=f"Correct! {expr} = 24  (+1 point)", fg="#90EE90")
+            self.feedback_label.config(text=f"Correct! {expr} = 24  (+1 point)", fg="#90EE90")
             self._update_info()
             self._set_buttons_enabled(False)
             self.root.after(1200, self._resume_round)
         else:
             val = f"{result:.4g}" if result is not None else "??"
-            self.feedback_label.config(
-                text=f"{expr} = {val}, not 24. Keep trying!", fg="#FF9999")
+            self.feedback_label.config(text=f"{expr} = {val}, not 24. Keep trying!", fg="#FF9999")
 
     def _skip(self) -> None:
         if self.solution:
             self.score -= 1
             self.feedback_label.config(
-                text=f"Solution was: {self.solution}  (-1 point)", fg="#FF9999")
+                text=f"Solution was: {self.solution}  (-1 point)", fg="#FF9999"
+            )
         else:
-            self.feedback_label.config(
-                text="Correct, no solution! No penalty.", fg="#90EE90")
+            self.feedback_label.config(text="Correct, no solution! No penalty.", fg="#90EE90")
         self._update_info()
         self._set_buttons_enabled(False)
         self.root.after(1500, self._resume_round)
@@ -534,12 +690,10 @@ class Game:
     def _hint(self) -> None:
         if self.solution:
             self.score -= 1
-            self.feedback_label.config(
-                text=f"Hint: {self.solution}  (-1 point)", fg="#FFD700")
+            self.feedback_label.config(text=f"Hint: {self.solution}  (-1 point)", fg="#FFD700")
             self._update_info()
         else:
-            self.feedback_label.config(
-                text="No solution exists for these cards.", fg="#FFD700")
+            self.feedback_label.config(text="No solution exists for these cards.", fg="#FFD700")
 
     def _set_buttons_enabled(self, enabled: bool) -> None:
         state = "normal" if enabled else "disabled"
@@ -554,20 +708,34 @@ class Game:
     def _game_over(self) -> None:
         self.canvas.delete("all")
         self.canvas.create_text(
-            CANVAS_W // 2, CANVAS_H // 2,
-            text="GAME OVER", fill="#FFD700",
-            font=("Arial", 36, "bold"), anchor="center")
+            CANVAS_W // 2,
+            CANVAS_H // 2,
+            text="GAME OVER",
+            fill="#FFD700",
+            font=("Arial", 36, "bold"),
+            anchor="center",
+        )
         self.status_label.config(text="")
         self.expr_label.config(text="")
         self.result_label.config(text="")
         self.feedback_label.config(
-            text=f"Final Score: {self.score} / {self.rounds} rounds", fg="white")
+            text=f"Final Score: {self.score} / {self.rounds} rounds", fg="white"
+        )
         self._set_buttons_enabled(False)
 
         self.play_again_btn = tk.Button(
-            self.root, text="Play Again", bg="#FFD700", fg="#1a1a1a",
-            font=("Arial", 13, "bold"), relief="flat", cursor="hand2",
-            padx=18, pady=6, activebackground="#FFC300", command=self._restart)
+            self.root,
+            text="Play Again",
+            bg="#FFD700",
+            fg="#1a1a1a",
+            font=("Arial", 13, "bold"),
+            relief="flat",
+            cursor="hand2",
+            padx=18,
+            pady=6,
+            activebackground="#FFC300",
+            command=self._restart,
+        )
         self.play_again_btn.pack(pady=(0, 12))
 
     def _restart(self) -> None:

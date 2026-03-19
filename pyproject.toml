@@ -1,0 +1,13 @@
+[project]
+name = "twenty-four-game"
+version = "0.1.0"
+description = "Make 24 from 4 poker cards"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "SIM", "TCH"]
+ignore = ["S307"]  # eval is used safely with restricted builtins
